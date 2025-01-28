@@ -1,8 +1,10 @@
 <br><br><p align="center">
-    <img alt="a cute oarfish" src="assets/oarfish.png"/>
+    <img alt="a cute oarfish" src="assets/oarfish.png" width="300"/>
 </p><br><br>
 
-<h1>Oarfish</h1>
-<p style="font-size:15px;">
-    Just another chess engine—this time with a cute oarfish illustration!
-</p>
+# Oarfish
+Just another chess engine—this time with a cute oarfish illustration! I'm currently working on researching for the project. Here's some helpful sources I'm looking at now:
+
+Move Generation:
+- https://josherv.in/2021/03/19/chess-1/
+- https://github.com/nkarve/surge
