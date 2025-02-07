@@ -1,4 +1,6 @@
 all:
-	g++ -o test basic_bb.cpp position.cpp
+	g++ -o test main.cpp position.cpp -Wextra -Wall
+	cls
+	test
 clean:
 	del test.exe

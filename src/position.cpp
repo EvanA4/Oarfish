@@ -1,5 +1,6 @@
 #include <set>
 #include <iostream>
+#include <stdexcept>
 #include "position.hpp"
 
 
@@ -18,9 +19,12 @@ void Position::fillBitboards(std::string &fen) {
         else if (fen[i] == '/') {
             currIdx -= 16;
         }
-
+        
         // if end of pieces str, end loop
         else if (fen[i] == ' ') {
+            if (currIdx != 8) {
+                throw std::runtime_error("Illegal position encoding in FEN string " + fen + ".");
+            }
             break;
         }
 
@@ -49,14 +53,17 @@ void Position::fillBitboards(std::string &fen) {
                     type_bbs[5] |= (1ULL << currIdx);
                     break;
                 default:
-                    // ==========================THROW ERROR
-                    break;
+                    // This isn't even reachable
+                    throw std::runtime_error("Failed to parse FEN string " + fen + ".");
             }
             ++currIdx;
         }
 
         else {
-            // =======================THROW ERROR
+            // Illegal position representation
+            std::string errstr =  "Invalid character \"a\" in FEN position encoding.";
+            errstr[19] = fen[i];
+            throw std::runtime_error(errstr);
         }
     }
 }
