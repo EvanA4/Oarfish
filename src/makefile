@@ -1,6 +1,6 @@
 all:
 	g++ -o test main.cpp position.cpp -Wextra -Wall
-	cls
-	test
+	clear
+	./test
 clean:
-	del test.exe
+	rm test

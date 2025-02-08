@@ -8,3 +8,4 @@ Just another chess engine—this time with a cute oarfish illustration! I'm curr
 Move Generation:
 - https://josherv.in/2021/03/19/chess-1/
 - https://github.com/nkarve/surge
+- https://www.codeproject.com/Articles/5313417/Worlds-fastest-Bitboard-Chess-Movegenerator
