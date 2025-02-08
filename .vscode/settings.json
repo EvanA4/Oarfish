@@ -90,6 +90,7 @@
         "string_view": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "__nullptr": "cpp"
+        "__nullptr": "cpp",
+        "climits": "cpp"
     }
 }
