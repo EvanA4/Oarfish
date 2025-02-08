@@ -1,4 +1,5 @@
 #include <iostream>
+#include <bit>
 #include <set>
 #include "position.hpp"
 

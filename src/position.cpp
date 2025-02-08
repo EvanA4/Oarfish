@@ -1,6 +1,7 @@
 #include <set>
 #include <iostream>
 #include <stdexcept>
+#include <sys/types.h>
 #include "position.hpp"
 
 

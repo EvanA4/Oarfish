@@ -1,7 +1,6 @@
 #include <set>
+#include <sys/types.h>
 #include <iostream>
-
-typedef unsigned long long ulong;
 
 
 class Position {
