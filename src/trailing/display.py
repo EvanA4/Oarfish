@@ -25,9 +25,9 @@ def show_range():
     plt.figure(figsize=(10, 6))
     for i in range(len(names)):
         plt.bar(names[i], times[i])
-    plt.title("Scaling Performance for Counting")
+    plt.title("Trailing-Zero Functions for Counting")
     plt.xlabel("Name")
-    plt.ylabel("Time to count to 500,000,000 (ms)")
+    plt.ylabel("Time to Count to 500,000,000 (ms)")
     plt.show()
 
 
