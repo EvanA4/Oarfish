@@ -17,6 +17,7 @@ class Position {
     short halfMove;
     short fullMove;
 
+    int zeros(ulong num);
     void parseFEN(std::string &fen);
 
     public:
