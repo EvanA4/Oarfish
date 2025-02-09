@@ -1,1 +1,3 @@
-src/test.exe
+src/test
+src/trailing/*.txt
+src/trailing/trailing

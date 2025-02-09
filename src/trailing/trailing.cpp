@@ -1,8 +1,11 @@
 #include <iostream>
 #include <bit>
+#include <bitset>
 #include <chrono>
 #include <string.h>
 #include <stdexcept>
+#include <fstream>
+#include <vector>
 
 
 int countr(ulong input) {
@@ -48,7 +51,9 @@ int lookup_37mod(ulong input) {
 
 int parallel(ulong input) {
     unsigned int output = 64;
-    // input &= -signed(input);
+    input = input & ~(input - 1);
+    // std::bitset<64> bits(input);
+    // std::cout << bits << std::endl;
     if (input) output--;
     if (input & 0x00000000FFFFFFFFULL) output -= 32;
     if (input & 0x0000FFFF0000FFFFULL) output -= 16;
@@ -95,44 +100,37 @@ int bsearch(ulong input) {
 
 
 class FunctionTimer {
-    int (*fptr)(ulong);
-    const char *name;
-
-    void test() {
-        for (ulong i = 1; i < 1000; ++i) {
-            int output = fptr(i);
-            int expected = std::__countr_zero(i);
-            if (output != expected) {
-                char errstr[200];
-                sprintf(
-                    errstr,
-                    "Error: %s provides invalid input \"%d\" instead of \"%d\" for value %lu.",
-                    name, output, expected, i
-                );
-                throw std::runtime_error(errstr);
-            }
-        }
-    }
-
     public:
-        FunctionTimer(int (*fptr)(ulong), const char *name) {
-            this->fptr = fptr;
-            this->name = name;
-            test();
+        int (*fptr)(ulong);
+        const char *name;
+    
+    private:
+        void test_range(ulong min, ulong max, ulong step) {
+            for (ulong i = min; i < max; i += step) {
+                int output = fptr(i);
+                int expected = std::__countr_zero(i);
+                if (output != expected) {
+                    char errstr[200];
+                    sprintf(
+                        errstr,
+                        "Error: %s provides invalid input \"%d\" instead of \"%d\" for value %lu.",
+                        name, output, expected, i
+                    );
+                    throw std::runtime_error(errstr);
+                }
+            }
         }
 
-        double gettime(ulong min, ulong max, ulong step) {
-            // get time of loop
-            std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
-            for (ulong i = min; i < max; i += step) {
-                ulong output = this->fptr(i);
+        void test() {
+            test_range(1ULL, 1000ULL, 1ULL);
+            for (int i = 1; i < 64; ++i) {
+                test_range((1ULL << i), (1ULL << i) + 1ULL, 1ULL);
             }
+        }
 
-            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-            ulong nano = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
 
-            // convert time to double
+        double nano_to_milli(ulong nano) {
             char nanoStr[32];
             sprintf(nanoStr, "%lu", nano);
             int len = strlen(nanoStr);
@@ -146,25 +144,136 @@ class FunctionTimer {
 
             return milli;
         }
+
+
+    public:
+        FunctionTimer(int (*fptr)(ulong), const char *name) {
+            this->fptr = fptr;
+            this->name = name;
+            test();
+        }
+
+        double get_discrete_time(ulong input, int repeat) {
+            // get time of loop
+            std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+            for (int i = 1; i <= repeat; ++i) {
+                ulong output = this->fptr(input);
+            }
+
+            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+            ulong nano = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+
+            return nano_to_milli(nano);
+        }
+
+
+        double get_range_time(ulong min, ulong max) {
+            // get time of loop
+            std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+
+            for (ulong i = min; i < max; ++i) {
+                ulong output = this->fptr(i);
+            }
+
+            std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+            ulong nano = std::chrono::duration_cast<std::chrono::nanoseconds>(end - begin).count();
+
+            return nano_to_milli(nano);
+        }
+};
+
+
+class FunctionTester {
+    std::vector<FunctionTimer> funcs;
+    
+
+    void test_discrete() {
+        std::ofstream fout(("discrete.txt"));
+        if (!fout.is_open()) {
+            throw new std::runtime_error("Failed to open discrete.txt");
+        }
+
+        fout << "name";
+        for (int i = 0; i < 64; ++i) {
+            fout << "," << i;
+        }
+        fout << std::endl;
+
+
+        for (FunctionTimer func : funcs) {
+            fout << func.name << std::flush;
+
+            for (int i = 0; i < 64; ++i) {
+                double total_milli = 0.;
+                for (int j = 0; j < 3; ++j) {
+                    total_milli += func.get_discrete_time((1 << i), 5000000);
+                }
+                fout << "," << total_milli / 3. << std::flush;
+            }
+
+            fout << std::endl;
+        }
+    }
+
+
+    void test_range() {
+        std::ofstream fout(("range.txt"));
+        if (!fout.is_open()) {
+            throw new std::runtime_error("Failed to open range.txt");
+        }
+
+        fout << "name,time" << std::endl;
+
+        for (FunctionTimer func : funcs) {
+            fout << func.name << std::flush;
+
+            double total_milli = 0.;
+            for (int j = 0; j < 3; ++j) {
+                total_milli += func.get_range_time(1ULL, 500000000ULL);
+            }
+            fout << "," << total_milli / 3. << std::flush;
+
+            fout << std::endl;
+        }
+    }
+
+
+    public:
+        FunctionTester() {
+        }
+
+
+        void add_func(FunctionTimer &timer) {
+            funcs.push_back(timer);
+        }
+
+
+        void test_funcs() {
+            test_discrete();
+            test_range();
+        }
 };
 
 
 int main() {
-    FunctionTimer ftimer = FunctionTimer(&my_loop, "my_loop");
-    for (int i = 0; i < 3; ++i) {
-        double milli = ftimer.gettime(1, 1000000000, 1);
-        std::cout << milli << " ms" << std::endl;
-    } std::cout << std::endl;
+    // Create tester and timers
+    FunctionTester tester = FunctionTester();
+    
+    FunctionTimer funcs[6] = {
+        FunctionTimer(&my_loop, "my_loop"),
+        FunctionTimer(&their_loop, "their_loop"),
+        FunctionTimer(&countr, "countr"),
+        FunctionTimer(&lookup_37mod, "lookup_37mod"),
+        FunctionTimer(&parallel, "parallel"),
+        FunctionTimer(&bsearch, "bsearch")
+    };
 
-    ftimer = FunctionTimer(&their_loop, "their_loop");
-    for (int i = 0; i < 3; ++i) {
-        double milli = ftimer.gettime(1, 1000000000, 1);
-        std::cout << milli << " ms" << std::endl;
-    } std::cout << std::endl;
+    // Add timers to tester
+    for (int i = 0; i < 6; ++i) {
+        tester.add_func(funcs[i]);
+    }
 
-    ftimer = FunctionTimer(&countr, "countr");
-    for (int i = 0; i < 3; ++i) {
-        double milli = ftimer.gettime(1, 1000000000, 1);
-        std::cout << milli << " ms" << std::endl;
-    } std::cout << std::endl;
+    // Run tester
+    tester.test_funcs();
 }

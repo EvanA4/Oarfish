@@ -91,6 +91,7 @@
         "numbers": "cpp",
         "semaphore": "cpp",
         "__nullptr": "cpp",
-        "climits": "cpp"
+        "climits": "cpp",
+        "codecvt": "cpp"
     }
 }
